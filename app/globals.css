@@ -52,7 +52,7 @@ a { color: var(--green); }
 .intro.small { padding: 40px 0 24px; }
 .letter-paper { background: var(--paper); background-image: repeating-linear-gradient(transparent 0 31px, #ece6d8 31px 32px); }
 .letter { border: 1px solid #e8e0cc; border-radius: 18px; padding: 28px; box-shadow: 0 6px 20px #2f2a330a; }
-.letter > p { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 17px; line-height: 2; margin: 16px 0 0; }
+.letter > p { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 17px; line-height: 32px; margin: 16px 0 0; }
 .composer.letter-paper textarea { background: transparent; }
 .reply { margin-top: 20px; }
 .back { display: inline-block; margin: 28px 0 14px; font-size: 13px; text-decoration: none; }
