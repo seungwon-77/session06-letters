@@ -20,6 +20,10 @@ create table public.comments (
   constraint comments_content_not_blank check (content ~ '[^[:space:]]')
 );
 
+-- 고민 목록: ORDER BY created_at DESC, id DESC LIMIT 50
+create index letters_created_at_id_idx
+  on public.letters (created_at desc, id desc);
+
 -- 편지 화면의 댓글 조회: WHERE letter_id = ? ORDER BY created_at
 create index comments_letter_id_created_at_idx
   on public.comments (letter_id, created_at);
@@ -42,26 +46,5 @@ create policy "Public can read comments" on public.comments
   for select to anon using (true);
 create policy "Public can write comments" on public.comments
   for insert to anon with check (true);
-
--- 무작위 고민 뽑기: 내가 쓴 편지·방금 본 편지(exclude)는 빼고,
--- 댓글이 적은 편지(0개 → 1개 → 2개 → 3개 이상)를 먼저 무작위로 고릅니다.
-create function public.draw_letter(exclude uuid[] default '{}')
-returns uuid
-language sql
-stable
-security invoker
-set search_path = ''
-as $$
-  select l.id
-  from public.letters l
-  left join public.comments c on c.letter_id = l.id
-  where not (l.id = any (coalesce(exclude, '{}')))
-  group by l.id
-  order by least(count(c.id), 3), random()
-  limit 1;
-$$;
-
-revoke all on function public.draw_letter(uuid[]) from public;
-grant execute on function public.draw_letter(uuid[]) to anon;
 
 commit;

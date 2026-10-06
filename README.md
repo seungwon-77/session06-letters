@@ -5,14 +5,13 @@
 ## 사용자 흐름
 
 ```text
-[홈] ─┬─ 고민 부치기 (/write) → 저장 → 편지 링크 발급(복사) → /letter/[id]에서 답장 확인
-      └─ 답장해 주기 (/draw) → 댓글 적은 고민을 무작위로 받기 → /letter/[id]에서 댓글 답장
-                                                         └→ 다른 고민 받기 / 나도 고민 부치기
+[홈 /] 고민 목록(최신 50개, 답장 수 표시)
+   ├─ 고민 부치기 (/write) → 저장 → 내 고민 게시글(/letter/[id])로 이동
+   └─ 마음 가는 고민 클릭 → /letter/[id] 고민 + 답장 댓글 목록 → 댓글로 답장 남기기
 ```
 
-- 답장(댓글)은 개수 제한 없이 누구나 남길 수 있습니다.
-- 무작위 뽑기는 댓글이 적은 고민(0 → 1 → 2 → 3개 이상)을 먼저 보여 줍니다.
-- 내가 쓴 고민은 이 브라우저(localStorage)에 기억해서 뽑기에서 빼고, 홈의 "내가 부친 고민"에 보여 줍니다.
+- 고민은 게시글처럼 목록에 올라가고, 누구나 원하는 고민에 개수 제한 없이 댓글로 답장할 수 있습니다.
+- 로그인은 없습니다. 내가 쓴 고민은 이 브라우저(localStorage)에 기억해 "내 고민"으로 표시합니다.
 
 ## 구조
 
@@ -23,13 +22,12 @@
 ```
 
 ```text
-app/page.tsx              홈: 두 가지 선택 + 내가 부친 고민
+app/page.tsx              홈: 고민 목록(답장 수 포함) + 고민 부치기 버튼
 app/write/page.tsx        고민 쓰기 → letters 저장 → 편지 링크로 이동
-app/draw/page.tsx         draw_letter RPC로 무작위 고민 받기
-app/letter/[id]/page.tsx  고민 + 댓글 목록 + 댓글 쓰기 + 링크 복사 + 다른 고민 받기
-lib/letters.ts            타입·상수·localStorage·뽑기 함수
+app/letter/[id]/page.tsx  고민 + 답장 댓글 목록 + 댓글 쓰기
+lib/letters.ts            타입·상수·localStorage
 lib/supabase.ts           환경변수 확인과 SDK 연결
-supabase/schema.sql       테이블·권한·RLS·draw_letter 함수
+supabase/schema.sql       테이블·인덱스·권한·RLS
 ```
 
 ## DB
@@ -39,7 +37,7 @@ supabase/schema.sql       테이블·권한·RLS·draw_letter 함수
 | `letters` | id, content(1~1000자), created_at | 조회, content 입력 |
 | `comments` | id, letter_id → letters, content(1~500자), created_at | 조회, letter_id·content 입력 |
 
-수정·삭제 권한은 없습니다. `draw_letter(exclude uuid[])` 함수는 제외 목록을 뺀 편지 중 댓글이 적은 순 → 무작위로 id 하나를 돌려줍니다.
+수정·삭제 권한은 없습니다. 목록의 답장 수는 `comments(count)` 임베드로 함께 조회합니다.
 
 ## 실행
 

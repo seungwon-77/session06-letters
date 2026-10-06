@@ -1,34 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { configError, getSupabase } from "@/lib/supabase";
 import {
-  COMMENT_MAX, TIMEOUT, charCount, dateFormat, drawLetterId, getMyLetters,
+  COMMENT_MAX, TIMEOUT, charCount, dateFormat, getMyLetters,
   type Comment, type Letter,
 } from "@/lib/letters";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default function LetterPage() {
-  return <Suspense fallback={<p className="empty" role="status">편지를 여는 중…</p>}><LetterView /></Suspense>;
-}
-
-function LetterView() {
   const { id } = useParams<{ id: string }>();
-  const justSent = useSearchParams().get("sent") === "1";
-  const router = useRouter();
 
   const [letter, setLetter] = useState<Letter | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [isMine, setIsMine] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [origin, setOrigin] = useState("");
-  const [drawing, setDrawing] = useState(false);
-  const [drawNotice, setDrawNotice] = useState("");
 
   const [content, setContent] = useState("");
   const [saving, setSaving] = useState(false);
@@ -70,7 +60,6 @@ function LetterView() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMine(getMyLetters().includes(id));
-    setOrigin(location.origin);
     void load();
     return () => { requestId.current += 1; };
   }, [id, load]);
@@ -102,29 +91,6 @@ function LetterView() {
     }
   }
 
-  async function copyLink() {
-    try {
-      await navigator.clipboard.writeText(`${origin}/letter/${id}`);
-      setCopied(true);
-    } catch {
-      setCopied(false);
-    }
-  }
-
-  async function drawAnother() {
-    setDrawing(true);
-    setDrawNotice("");
-    try {
-      const next = await drawLetterId([...getMyLetters(), id]);
-      if (next) router.push(`/letter/${next}`);
-      else setDrawNotice("지금은 다른 고민이 없어요. 조금 뒤에 다시 와 주세요.");
-    } catch {
-      setDrawNotice("편지를 꺼내지 못했습니다. 다시 시도해 주세요.");
-    } finally {
-      setDrawing(false);
-    }
-  }
-
   if (configError) return <aside className="setup" role="status"><h2>Supabase 연결을 준비해 주세요</h2><p>{configError}</p></aside>;
   if (loading && !letter) return <p className="empty" role="status">편지를 여는 중…</p>;
   if (loadError || !letter) {
@@ -133,17 +99,7 @@ function LetterView() {
 
   return (
     <main>
-      {justSent && isMine && (
-        <aside className="sent" role="status">
-          <h2>편지를 부쳤어요 ✉</h2>
-          <p>이 링크를 저장해 두세요. 링크로 다시 들어오면 받은 답장을 볼 수 있어요.</p>
-          <div className="link-row">
-            <code>{`${origin}/letter/${id}`}</code>
-            <button type="button" className="secondary" onClick={() => void copyLink()}>{copied ? "복사됨" : "링크 복사"}</button>
-          </div>
-        </aside>
-      )}
-
+      <Link className="back" href="/">← 고민 목록</Link>
       <article className="letter letter-paper">
         <div className="post-meta">
           <span>{isMine ? "내가 부친 고민" : "익명의 고민"}</span>
@@ -182,10 +138,9 @@ function LetterView() {
       </section>
 
       <div className="actions">
-        <button type="button" className="secondary" onClick={() => void drawAnother()} disabled={drawing}>{drawing ? "꺼내는 중…" : "다른 고민 받기 ✉"}</button>
+        <Link className="secondary button-link" href="/">← 고민 목록</Link>
         <Link className="secondary button-link" href="/write">나도 고민 부치기</Link>
       </div>
-      {drawNotice && <p className="notice">{drawNotice}</p>}
     </main>
   );
 }

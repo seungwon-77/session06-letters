@@ -1,6 +1,5 @@
-import { getSupabase } from "@/lib/supabase";
-
 export type Letter = { id: string; content: string; created_at: string };
+export type LetterSummary = Letter & { comments: { count: number }[] };
 export type Comment = { id: string; content: string; created_at: string };
 
 export const LETTER_MAX = 1000;
@@ -13,7 +12,7 @@ export const dateFormat = new Intl.DateTimeFormat("ko-KR", {
 
 export const charCount = (text: string) => Array.from(text).length;
 
-// 내가 쓴 편지 id는 이 브라우저에만 기억합니다. 로그인이 없으므로 기기를 바꾸면 링크로 찾아야 합니다.
+// 내가 쓴 고민 id는 이 브라우저에만 기억해 "내 고민" 표시에 씁니다. 로그인이 없으므로 기기를 바꾸면 표시되지 않습니다.
 const MINE_KEY = "my-letters";
 
 export function getMyLetters(): string[] {
@@ -31,13 +30,4 @@ export function rememberMyLetter(id: string) {
   } catch {
     // 저장소를 못 쓰는 브라우저에서는 링크만으로 다시 찾습니다.
   }
-}
-
-// 내가 쓴 편지와 방금 본 편지를 빼고, 댓글이 적은 편지부터 무작위로 하나 고릅니다.
-export async function drawLetterId(exclude: string[]) {
-  const { data, error } = await getSupabase()
-    .rpc("draw_letter", { exclude })
-    .abortSignal(AbortSignal.timeout(TIMEOUT));
-  if (error) throw error;
-  return (data as string | null) ?? null;
 }

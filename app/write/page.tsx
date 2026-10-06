@@ -25,13 +25,13 @@ export default function WritePage() {
     setSaving(true);
     setError("");
     try {
-      // 저장과 동시에 새 편지의 id를 돌려받아 편지 링크로 이동합니다.
+      // 저장과 동시에 새 고민의 id를 돌려받아 그 게시글로 이동합니다.
       const { data, error } = await getSupabase().from("letters")
         .insert({ content: trimmed }).select("id")
         .abortSignal(AbortSignal.timeout(TIMEOUT)).single();
       if (error) throw error;
       rememberMyLetter(data.id);
-      router.push(`/letter/${data.id}?sent=1`);
+      router.push(`/letter/${data.id}`);
     } catch {
       setError("편지를 부치지 못했습니다. 잠시 후 다시 시도해 주세요.");
       savingRef.current = false;
@@ -42,9 +42,9 @@ export default function WritePage() {
   return (
     <main>
       <section className="intro small">
-        <p className="eyebrow">STEP 1 · 고민 부치기</p>
+        <p className="eyebrow">고민 부치기</p>
         <h1>어떤 고민이 있나요<span className="dot">?</span></h1>
-        <p>이름은 남지 않아요. 편지를 부치면 답장을 확인할 수 있는 링크가 생겨요.</p>
+        <p>이름은 남지 않아요. 부친 고민은 편지함 목록에 올라가고, 누구나 댓글로 답장할 수 있어요.</p>
       </section>
 
       {configError && <aside className="setup" role="status"><h2>Supabase 연결을 준비해 주세요</h2><p>{configError}</p></aside>}
